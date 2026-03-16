@@ -1,0 +1,19 @@
+# Build / IDE
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+
+# NuGet
+*.nupkg
+packages/
+
+# Node (frontend)
+node_modules/
+
+# Hassas ayar dosyaları (örnek dosyalar commit edilir, gerçek değerler edilmez)
+TetaCode.API/appsettings.json
+TetaCode.API/appsettings.Development.json
+frontend/.env.local

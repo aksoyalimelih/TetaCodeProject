@@ -6,6 +6,7 @@ namespace TetaCode.Service.Dtos;
 public class ConvertToPdfDto
 {
     public string Title { get; set; } = null!;
-    public string Description { get; set; } = null!;
-    public string Content { get; set; } = null!;
+    public string? Description { get; set; }
+    public string? Content { get; set; }
+    public string? Category { get; set; }
 }

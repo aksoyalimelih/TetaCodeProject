@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [ocrText, setOcrText] = useState("");
   const [ocrPdfTitle, setOcrPdfTitle] = useState("");
   const [ocrPdfDescription, setOcrPdfDescription] = useState("");
+  const [ocrPdfCategory, setOcrPdfCategory] = useState("");
   const [ocrLanguage, setOcrLanguage] = useState<"eng" | "tur" | "eng+tur">("eng+tur");
 
   const [search, setSearch] = useState("");
@@ -250,7 +251,7 @@ export default function DashboardPage() {
   });
 
   const convertToPdfMutation = useMutation({
-    mutationFn: async (payload: { title: string; description: string; content: string }) => {
+    mutationFn: async (payload: { title: string; description: string; content: string; category?: string }) => {
       const { data } = await api.post<NoteDto>("/Notes/convert-to-pdf", payload, {
         headers: { "Content-Type": "application/json" },
       });
@@ -264,6 +265,7 @@ export default function DashboardPage() {
       setOcrText("");
       setOcrPdfTitle("");
       setOcrPdfDescription("");
+      setOcrPdfCategory("");
       toast.success("PDF notu başarıyla oluşturuldu.");
     },
     onError: () => {
@@ -277,6 +279,7 @@ export default function DashboardPage() {
     setOcrText("");
     setOcrPdfTitle("");
     setOcrPdfDescription("");
+    setOcrPdfCategory("");
     setOcrLanguage("eng+tur");
     setOcrOpen(true);
   };
@@ -288,6 +291,7 @@ export default function DashboardPage() {
     setOcrText("");
     setOcrPdfTitle("");
     setOcrPdfDescription("");
+    setOcrPdfCategory("");
   };
 
   const handleOcrAnalyze = () => {
@@ -304,6 +308,7 @@ export default function DashboardPage() {
       title,
       description: ocrPdfDescription.trim(),
       content: ocrText,
+      category: ocrPdfCategory.trim() || undefined,
     });
   };
 
@@ -810,6 +815,14 @@ export default function DashboardPage() {
                     value={ocrPdfDescription}
                     onChange={(e) => setOcrPdfDescription(e.target.value)}
                     placeholder="Açıklama (isteğe bağlı)"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500"
+                  />
+                  <input
+                    type="text"
+                    list="categoryOptions"
+                    value={ocrPdfCategory}
+                    onChange={(e) => setOcrPdfCategory(e.target.value)}
+                    placeholder="Kategori (örn. Vize, Final, Genel...)"
                     className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500"
                   />
                   <div className="flex justify-between">

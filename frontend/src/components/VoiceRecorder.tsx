@@ -19,11 +19,18 @@ export default function VoiceRecorder({ onSuccess }: Props) {
   const timerRef = useRef<number | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  // Timer sadece unmount'ta temizlensin; mediaRecorder değişince cleanup tetiklenmesin (yoksa süre 00:00'da kalır)
   useEffect(() => {
     return () => {
       if (timerRef.current !== null) {
         window.clearInterval(timerRef.current);
+        timerRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
       mediaRecorder?.stream.getTracks().forEach((t) => t.stop());
     };
   }, [mediaRecorder]);

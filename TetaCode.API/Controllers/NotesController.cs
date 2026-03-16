@@ -116,7 +116,10 @@ public class NotesController : ControllerBase
             return Unauthorized();
         }
 
-        var notes = await _noteService.GetArchivedNotesAsync(userId, cancellationToken);
+        var search = HttpContext.Request.Query["search"].ToString();
+        var category = HttpContext.Request.Query["category"].ToString();
+
+        var notes = await _noteService.SearchArchivedNotesAsync(userId, search, category, cancellationToken);
         return Ok(notes);
     }
 
@@ -219,8 +222,12 @@ public class NotesController : ControllerBase
         }
 
         var pdfBytes = await _ocrService.GeneratePdfFromTextAsync(dto.Title, dto.Content ?? string.Empty, cancellationToken);
-        var description = dto.Description ?? string.Empty;
-        var created = await _noteService.AddNoteWithPdfAsync(userId, dto.Title, description, pdfBytes, webRootPath, cancellationToken);
+        // Kartlarda ve detayda görünsün diye not metnini OCR içeriği (Content) yapıyoruz; Description opsiyonel ek açıklama
+        var description = !string.IsNullOrWhiteSpace(dto.Content)
+            ? (dto.Content ?? string.Empty).Trim()
+            : (dto.Description ?? string.Empty).Trim();
+        var category = !string.IsNullOrWhiteSpace(dto.Category) ? dto.Category.Trim() : null;
+        var created = await _noteService.AddNoteWithPdfAsync(userId, dto.Title, description, pdfBytes, webRootPath, category, cancellationToken);
         return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
     }
 

@@ -119,7 +119,7 @@ public class NoteService : INoteService
         };
     }
 
-    public async Task<NoteDto> AddNoteWithPdfAsync(int userId, string title, string description, byte[] pdfBytes, string webRootPath, CancellationToken cancellationToken = default)
+    public async Task<NoteDto> AddNoteWithPdfAsync(int userId, string title, string description, byte[] pdfBytes, string webRootPath, string? category = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webRootPath))
         {
@@ -135,12 +135,14 @@ public class NoteService : INoteService
 
         var relativeFilePath = Path.Combine("uploads", fileName).Replace("\\", "/");
 
+        var categoryTrimmed = !string.IsNullOrWhiteSpace(category) ? category.Trim() : null;
+
         var note = new Note
         {
             Title = title,
             Description = description,
             Tags = null,
-            Category = null,
+            Category = categoryTrimmed,
             UserId = userId,
             FilePath = relativeFilePath,
             CreatedAt = DateTime.UtcNow,
@@ -299,9 +301,32 @@ public class NoteService : INoteService
 
     public async Task<IReadOnlyList<NoteDto>> GetArchivedNotesAsync(int userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Notes
+        return await SearchArchivedNotesAsync(userId, null, null, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<NoteDto>> SearchArchivedNotesAsync(int userId, string? searchTerm, string? category, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Notes
             .IgnoreQueryFilters()
-            .Where(n => n.IsDeleted && n.UserId == userId)
+            .Where(n => n.IsDeleted && n.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(n =>
+                n.Title.Contains(term) ||
+                (n.Description != null && n.Description.Contains(term)) ||
+                (n.Tags != null && n.Tags.Contains(term)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category) && !category.Trim().Equals("Hepsi", StringComparison.OrdinalIgnoreCase))
+        {
+            var cat = category.Trim();
+            query = query.Where(n => n.Category != null && n.Category == cat);
+        }
+
+        return await query
+            .OrderByDescending(n => n.DeletedAt)
             .AsNoTracking()
             .Select(n => new NoteDto
             {
